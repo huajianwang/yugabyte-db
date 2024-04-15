@@ -476,6 +476,7 @@ bool YBCGetCurrentPgSessionParallelData(YBCPgSessionParallelData* session_data) 
     session_data->session_id = pgapi->GetSessionId();
     session_data->txn_serial_no = pgapi->GetTxnSerialNo();
     session_data->read_time_serial_no = pgapi->GetReadTimeSerialNo();
+    session_data->active_sub_transaction_id = pgapi->GetActiveSubTransactionId();
     return true;
   }
   return false;
@@ -1151,9 +1152,10 @@ YBCStatus YBCPgExecCreateIndex(YBCPgStatement handle) {
 YBCStatus YBCPgNewDropIndex(const YBCPgOid database_oid,
                             const YBCPgOid index_oid,
                             bool if_exist,
+                            bool ddl_rollback_enabled,
                             YBCPgStatement *handle) {
   const PgObjectId index_id(database_oid, index_oid);
-  return ToYBCStatus(pgapi->NewDropIndex(index_id, if_exist, handle));
+  return ToYBCStatus(pgapi->NewDropIndex(index_id, if_exist, ddl_rollback_enabled, handle));
 }
 
 YBCStatus YBCPgExecPostponedDdlStmt(YBCPgStatement handle) {
@@ -1187,6 +1189,10 @@ YBCStatus YBCPgBackfillIndex(
 
 YBCStatus YBCPgDmlAppendTarget(YBCPgStatement handle, YBCPgExpr target) {
   return ToYBCStatus(pgapi->DmlAppendTarget(handle, target));
+}
+
+YBCStatus YBCPgDmlHasRegularTargets(YBCPgStatement handle, bool *has_targets) {
+  return ExtractValueFromResult(pgapi->DmlHasRegularTargets(handle), has_targets);
 }
 
 YBCStatus YBCPgDmlHasSystemTargets(YBCPgStatement handle, bool *has_system_cols) {
@@ -2118,6 +2124,7 @@ YBCStatus YBCPgListReplicationSlots(
   if (!result.ok()) {
     return ToYBCStatus(result.status());
   }
+  VLOG(4) << "The ListReplicationSlots response: " << result->DebugString();
 
   const auto &replication_slots_info = result.get().replication_slots();
   *DCHECK_NOTNULL(numreplicationslots) = replication_slots_info.size();
@@ -2339,9 +2346,9 @@ YBCStatus YBCPgGetCDCConsistentChanges(
   auto row_count = resp.cdc_sdk_proto_records_size();
 
   // Used for logging a summary of the response received from the CDC service.
-  YBCPgXLogRecPtr min_resp_lsn = 0xFFFFFFFF;
+  YBCPgXLogRecPtr min_resp_lsn = 0xFFFFFFFFFFFFFFFF;
   YBCPgXLogRecPtr max_resp_lsn = 0;
-  uint32_t min_txn_id = 0xFFFF;
+  uint32_t min_txn_id = 0xFFFFFFFF;
   uint32_t max_txn_id = 0;
 
   auto resp_rows_pb = resp.cdc_sdk_proto_records();
@@ -2473,9 +2480,13 @@ YBCStatus YBCPgGetCDCConsistentChanges(
       .publication_refresh_time = publication_refresh_time
   };
 
-  VLOG(1) << "Summary of the GetConsistentChangesResponsePB response\n"
-          << "min_txn_id: " << min_txn_id << ", max_txn_id: " << max_txn_id
-          << "min_lsn: " << min_resp_lsn << ", max_lsn: " << max_resp_lsn;
+  if (row_count > 0) {
+    VLOG(1) << "Summary of the GetConsistentChangesResponsePB response\n"
+            << "min_txn_id: " << min_txn_id << ", max_txn_id: " << max_txn_id
+            << ", min_lsn: " << min_resp_lsn << ", max_lsn: " << max_resp_lsn;
+  } else {
+    VLOG(1) << "Received 0 rows in GetConsistentChangesResponsePB response\n";
+  }
 
   return YBCStatusOK();
 }

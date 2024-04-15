@@ -407,6 +407,7 @@ class PgApiImpl {
 
   Status NewDropIndex(const PgObjectId& index_id,
                       bool if_exist,
+                      bool ddl_rollback_enabled,
                       PgStatement **handle);
 
   Status ExecPostponedDdlStmt(PgStatement *handle);
@@ -431,6 +432,8 @@ class PgApiImpl {
   //------------------------------------------------------------------------------------------------
   // All DML statements
   Status DmlAppendTarget(PgStatement *handle, PgExpr *expr);
+
+  Result<bool> DmlHasRegularTargets(PgStatement *handle);
 
   Result<bool> DmlHasSystemTargets(PgStatement *handle);
 
@@ -748,6 +751,8 @@ class PgApiImpl {
   uint64_t GetReadTimeSerialNo();
 
   uint64_t GetTxnSerialNo();
+
+  SubTransactionId GetActiveSubTransactionId();
 
   void RestoreSessionParallelData(const YBCPgSessionParallelData* session_data);
 

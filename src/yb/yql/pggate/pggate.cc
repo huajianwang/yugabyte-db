@@ -1254,11 +1254,12 @@ Status PgApiImpl::ExecCreateIndex(PgStatement *handle) {
 
 Status PgApiImpl::NewDropIndex(const PgObjectId& index_id,
                                bool if_exist,
+                               bool ddl_rollback_enabled,
                                PgStatement **handle) {
   SCHECK(pg_txn_manager_->IsDdlMode(),
          IllegalState,
          "Index is being dropped outside of DDL mode");
-  auto stmt = std::make_unique<PgDropIndex>(pg_session_, index_id, if_exist);
+  auto stmt = std::make_unique<PgDropIndex>(pg_session_, index_id, if_exist, ddl_rollback_enabled);
   RETURN_NOT_OK(AddToCurrentPgMemctx(std::move(stmt), handle));
   return Status::OK();
 }
@@ -1330,6 +1331,10 @@ Status PgApiImpl::BackfillIndex(const PgObjectId& table_id) {
 
 Status PgApiImpl::DmlAppendTarget(PgStatement *handle, PgExpr *target) {
   return down_cast<PgDml*>(handle)->AppendTarget(target);
+}
+
+Result<bool> PgApiImpl::DmlHasRegularTargets(PgStatement *handle) {
+  return down_cast<PgDml*>(handle)->has_regular_targets();
 }
 
 Result<bool> PgApiImpl::DmlHasSystemTargets(PgStatement *handle) {
@@ -2326,6 +2331,10 @@ uint64_t PgApiImpl::GetReadTimeSerialNo() {
 
 uint64_t PgApiImpl::GetTxnSerialNo() {
   return pg_txn_manager_->GetTxnSerialNo();
+}
+
+SubTransactionId PgApiImpl::GetActiveSubTransactionId() {
+  return pg_txn_manager_->GetActiveSubTransactionId();
 }
 
 void PgApiImpl::RestoreSessionParallelData(const YBCPgSessionParallelData* session_data) {
