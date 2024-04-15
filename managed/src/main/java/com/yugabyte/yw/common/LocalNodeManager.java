@@ -69,6 +69,7 @@ import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 import javax.inject.Singleton;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -140,11 +141,26 @@ public class LocalNodeManager {
   }
 
   private void killProcess(long pid) throws IOException, InterruptedException {
-    int exitCode = Runtime.getRuntime().exec(String.format("kill -- - %d", pid)).waitFor();
-    if (exitCode != 0) {
-      throw new IllegalStateException(
-          String.format("Failed to kill process %d - exit code is %d", pid, exitCode));
+    try {
+      terminateProcessAndSubprocesses(pid);
+    } catch (SecurityException | IllegalArgumentException e) {
+        System.err.println("Error occurred while terminating process: " + e.getMessage());
+        e.printStackTrace();
     }
+  }
+
+  private void terminateProcessAndSubprocesses(long pid) {
+    ProcessHandle.of(pid).ifPresentOrElse(
+        process -> {
+            // Terminate the process and all its subprocesses
+            Stream<ProcessHandle> descendants = process.descendants();
+            descendants.forEach(ProcessHandle::destroy);
+            process.destroy();
+        },
+        () -> {
+            throw new IllegalArgumentException("No such process with PID: " + pid);
+        }
+    );
   }
 
   public void killProcess(String nodeName, UniverseTaskBase.ServerType serverType)
