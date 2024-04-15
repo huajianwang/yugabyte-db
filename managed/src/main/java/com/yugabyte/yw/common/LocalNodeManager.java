@@ -140,7 +140,7 @@ public class LocalNodeManager {
   }
 
   private void killProcess(long pid) throws IOException, InterruptedException {
-    int exitCode = Runtime.getRuntime().exec(String.format("kill -9 %d", pid)).waitFor();
+    int exitCode = Runtime.getRuntime().exec(String.format("kill -- - %d", pid)).waitFor();
     if (exitCode != 0) {
       throw new IllegalStateException(
           String.format("Failed to kill process %d - exit code is %d", pid, exitCode));
