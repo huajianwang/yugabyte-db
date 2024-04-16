@@ -71,6 +71,7 @@ public class LocalNodeUniverseManager {
     bashCommand.add(dbName);
     bashCommand.add("-c");
     ysqlCommand = ysqlCommand.replace("\"", "");
+    ysqlCommand = "\"" + ysqlCommand + "\"";
     bashCommand.add(ysqlCommand);
 
     ProcessBuilder processBuilder =
