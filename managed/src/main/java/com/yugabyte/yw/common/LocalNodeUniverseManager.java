@@ -71,14 +71,8 @@ public class LocalNodeUniverseManager {
     bashCommand.add("-d");
     bashCommand.add(dbName);
     bashCommand.add("-c");
-    // Escaping double quotes and $ at first.
-    String escapedYsqlCommand = ysqlCommand.replace("\"", "\\\"");
-    escapedYsqlCommand = escapedYsqlCommand.replace("$", "\\$");
-    // Escaping single quotes after for non k8s deployments.
-    if (!universe.getNodeDeploymentMode(node).equals(Common.CloudType.kubernetes)) {
-      escapedYsqlCommand = escapedYsqlCommand.replace("'", "'\"'\"'");
-    }
-    bashCommand.add("\"" + escapedYsqlCommand + "\"");
+    ysqlCommand = ysqlCommand.replace("\"", "");
+    bashCommand.add(ysqlCommand);
 
     ProcessBuilder processBuilder =
         new ProcessBuilder(bashCommand.toArray(new String[0])).redirectErrorStream(true);

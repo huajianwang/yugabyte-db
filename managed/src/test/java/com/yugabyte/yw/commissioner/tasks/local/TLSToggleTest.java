@@ -77,7 +77,7 @@ public class TLSToggleTest extends LocalProviderUniverseTestBase {
             details,
             universe,
             YUGABYTE_DB,
-            "insert into some_table values (4, 'tls1', 200), " + "(5, 'tls2', 180)",
+            "insert into some_table values (4, 'tls1', 200), (5, 'tls2', 180)",
             10);
     assertTrue(ysqlResponse.isSuccess());
 
@@ -123,7 +123,7 @@ public class TLSToggleTest extends LocalProviderUniverseTestBase {
             details,
             universe,
             YUGABYTE_DB,
-            "insert into some_table values (4, 'tls1', 200), " + "(5, 'tls2', 180)",
+            "insert into some_table values (4, 'tls1', 200), (5, 'tls2', 180)",
             10);
     assertTrue(ysqlResponse.isSuccess());
 

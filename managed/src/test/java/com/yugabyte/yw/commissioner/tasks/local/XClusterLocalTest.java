@@ -111,7 +111,7 @@ public class XClusterLocalTest extends LocalProviderUniverseTestBase {
             details,
             source,
             YUGABYTE_DB,
-            "insert into some_table values (4, 'xcluster1', 200), " + "(5, 'xCluster2', 180)",
+            "insert into some_table values (4, 'xcluster1', 200), (5, 'xCluster2', 180)",
             10);
     assertTrue(ysqlResponse.isSuccess());
 
@@ -215,7 +215,7 @@ public class XClusterLocalTest extends LocalProviderUniverseTestBase {
             sourceNodeDetails,
             source,
             YUGABYTE_DB,
-            "insert into x_cluster values (4, 'xcluster1', 200), " + "(5, 'xCluster2', 180)",
+            "insert into x_cluster values (4, 'xcluster1', 200), (5, 'xCluster2', 180)",
             10);
 
     assertTrue(ysqlResponse.isSuccess());
