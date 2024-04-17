@@ -526,11 +526,11 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
       simpleSqlPayload.stop();
     }
     if (!failed || !KEEP_FAILED_UNIVERSE) {
-      localNodeManager.shutdown();
       try {
         FileUtils.deleteDirectory(new File(new File(new File(baseDir), subDir), testName));
       } catch (Exception ignored) {
       }
+      localNodeManager.shutdown();
     }
   }
 
