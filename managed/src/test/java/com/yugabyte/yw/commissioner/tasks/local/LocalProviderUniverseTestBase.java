@@ -116,7 +116,7 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
   private static final boolean IS_LINUX = System.getProperty("os.name").equalsIgnoreCase("linux");
   private static final Set<String> CONTROL_FILES =
       Set.of(LocalNodeManager.MASTER_EXECUTABLE, LocalNodeManager.TSERVER_EXECUTABLE);
-  private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd'T'HHmmss.SSS");
+  private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
 
   protected static final String INSTANCE_TYPE_CODE = "c3.xlarge";
   protected static final String INSTANCE_TYPE_CODE_2 = "c5.xlarge";
@@ -125,7 +125,7 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
   private static final String BASE_DIR_ENV_KEY = "TEST_BASE_DIR";
   private static final String SKIP_WAIT_FOR_CLUSTER_ENV_KEY = "YB_SKIP_WAIT_FOR_CLUSTER";
 
-  private static final String DEFAULT_BASE_DIR = "/tmp/testing";
+  private static final String DEFAULT_BASE_DIR = "/tmp/local";
   protected static String YBC_VERSION;
   public static String DB_VERSION = "2.20.1.3-b3";
   private static final String DOWNLOAD_URL =
@@ -419,7 +419,8 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
     }
     File testDir = new File(curDir, testName);
     testDir.mkdirs();
-    GFLAGS.put("tmp_dir", testDir.getAbsolutePath());
+    File testTmpDir = new File(baseDirFile, testName);
+    GFLAGS.put("tmp_dir", testTmpDir.getAbsolutePath());
 
     YugawareProperty.addConfigProperty(
         ReleaseManager.CONFIG_TYPE.name(), getMetadataJson(ybVersion, false), "release");
@@ -529,6 +530,7 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
       localNodeManager.shutdown();
       try {
         FileUtils.deleteDirectory(new File(new File(new File(baseDir), subDir), testName));
+        FileUtils.deleteDirectory(new File(new File(baseDir), testName));
       } catch (Exception ignored) {
       }
     }
