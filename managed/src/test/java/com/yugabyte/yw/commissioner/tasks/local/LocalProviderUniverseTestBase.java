@@ -116,7 +116,7 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
   private static final boolean IS_LINUX = System.getProperty("os.name").equalsIgnoreCase("linux");
   private static final Set<String> CONTROL_FILES =
       Set.of(LocalNodeManager.MASTER_EXECUTABLE, LocalNodeManager.TSERVER_EXECUTABLE);
-  private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyyyMMdd'T'HHmmss");
+  private static final SimpleDateFormat DATE_FORMAT = new SimpleDateFormat("yyMMdd'T'HHmmss");
 
   protected static final String INSTANCE_TYPE_CODE = "c3.xlarge";
   protected static final String INSTANCE_TYPE_CODE_2 = "c5.xlarge";
@@ -419,8 +419,7 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
     }
     File testDir = new File(curDir, testName);
     testDir.mkdirs();
-    File testTmpDir = new File(baseDirFile, testName);
-    GFLAGS.put("tmp_dir", testTmpDir.getAbsolutePath());
+    GFLAGS.put("tmp_dir", testDir.getAbsolutePath());
 
     YugawareProperty.addConfigProperty(
         ReleaseManager.CONFIG_TYPE.name(), getMetadataJson(ybVersion, false), "release");
@@ -530,7 +529,6 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
       localNodeManager.shutdown();
       try {
         FileUtils.deleteDirectory(new File(new File(new File(baseDir), subDir), testName));
-        FileUtils.deleteDirectory(new File(new File(baseDir), testName));
       } catch (Exception ignored) {
       }
     }
