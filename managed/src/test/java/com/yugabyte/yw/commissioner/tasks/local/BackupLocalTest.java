@@ -72,7 +72,7 @@ public class BackupLocalTest extends LocalProviderUniverseTestBase {
     initYSQL(universe);
     // initAndStartPayload(universe);
     CustomerConfig customerConfig =
-        ModelFactory.createNfsStorageConfig(customer, "test_nfs_storage", baseDir);
+        ModelFactory.createNfsStorageConfig(customer, "test_nfs_storage", getBackupBaseDirectory());
     log.info("Customer config here: {}", customerConfig.toString());
     BackupRequestParams params = getBackupParams(universe, customerConfig);
     UUID taskUUID = backupHelper.createBackupTask(customer.getUuid(), params);
@@ -101,7 +101,7 @@ public class BackupLocalTest extends LocalProviderUniverseTestBase {
     initYSQL(source);
     // initAndStartPayload(source);
     CustomerConfig customerConfig =
-        ModelFactory.createNfsStorageConfig(customer, "test_nfs_storage", baseDir);
+        ModelFactory.createNfsStorageConfig(customer, "test_nfs_storage", getBackupBaseDirectory());
     log.info("Customer config here: {}", customerConfig.toString());
     BackupRequestParams params = getBackupParams(source, customerConfig);
     UUID taskUUID = backupHelper.createBackupTask(customer.getUuid(), params);

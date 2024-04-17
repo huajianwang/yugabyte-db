@@ -133,7 +133,6 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
   private static final String YBC_BASE_S3_URL = "https://downloads.yugabyte.com/ybc/";
   private static final String YBC_BIN_ENV_KEY = "YBC_PATH";
   private static final boolean KEEP_FAILED_UNIVERSE = true;
-  private static List<String> toCleanDirectories = ImmutableList.of("yugabyte_backup");
 
   public static Map<String, String> GFLAGS = new HashMap<>();
 
@@ -145,7 +144,6 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
     GFLAGS.put("load_balancer_max_concurrent_removals", "15");
     GFLAGS.put("transaction_table_num_tablets", "3");
     GFLAGS.put(GFlagsUtil.LOAD_BALANCER_INITIAL_DELAY_SECS, "120");
-    GFLAGS.put("tmp_dir", "/tmp/testing");
   }
 
   public Map<String, String> getYbcGFlags(UniverseDefinitionTaskParams.UserIntent userIntent) {
@@ -421,6 +419,7 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
     }
     File testDir = new File(curDir, testName);
     testDir.mkdirs();
+    GFLAGS.put("tmp_dir", testDir.getAbsolutePath());
 
     YugawareProperty.addConfigProperty(
         ReleaseManager.CONFIG_TYPE.name(), getMetadataJson(ybVersion, false), "release");
@@ -529,13 +528,6 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
     if (!failed || !KEEP_FAILED_UNIVERSE) {
       localNodeManager.shutdown();
       try {
-        for (String dirName : toCleanDirectories) {
-          String path = baseDir + "/" + dirName;
-          File directory = new File(path);
-          if (directory.exists()) {
-            FileUtils.deleteDirectory(directory);
-          }
-        }
         FileUtils.deleteDirectory(new File(new File(new File(baseDir), subDir), testName));
       } catch (Exception ignored) {
       }
@@ -1033,5 +1025,9 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
       }
     }
     Thread.sleep(1000);
+  }
+
+  protected String getBackupBaseDirectory() {
+    return String.format("%s/%s/%s", baseDir, subDir, testName);
   }
 }

@@ -74,7 +74,7 @@ public class XClusterLocalTest extends LocalProviderUniverseTestBase {
 
     // Set up the storage config.
     CustomerConfig customerConfig =
-        ModelFactory.createNfsStorageConfig(customer, "test_nfs_storage", baseDir);
+        ModelFactory.createNfsStorageConfig(customer, "test_nfs_storage", getBackupBaseDirectory());
     log.info("Customer config here: {}", customerConfig.toString());
 
     // Get the table info for the source universe.
@@ -142,7 +142,7 @@ public class XClusterLocalTest extends LocalProviderUniverseTestBase {
 
     // Set up the storage config.
     CustomerConfig customerConfig =
-        ModelFactory.createNfsStorageConfig(customer, "test_nfs_storage", baseDir);
+        ModelFactory.createNfsStorageConfig(customer, "test_nfs_storage", getBackupBaseDirectory());
     log.info("Customer config here: {}", customerConfig.toString());
 
     // Get the table info for the source universe.
