@@ -183,6 +183,7 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
   protected static String os;
   protected static String subDir;
   protected static String testName;
+  protected static String testMethod;
   // Whether to wait until all old tservers are removed from quorum and new ones are added.
   protected static boolean waitForClusterToStabilize;
 
@@ -419,7 +420,7 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
     }
     File testDir = new File(curDir, testName);
     testDir.mkdirs();
-    GFLAGS.put("tmp_dir", testDir.getAbsolutePath());
+    GFLAGS.put("tmp_dir", new File(baseDirFile, testMethod).getAbsolutePath());
 
     YugawareProperty.addConfigProperty(
         ReleaseManager.CONFIG_TYPE.name(), getMetadataJson(ybVersion, false), "release");
@@ -503,6 +504,7 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
 
         @Override
         protected void starting(Description description) {
+          testMethod = description.getMethodName();
           testName =
               description.getClassName().replaceAll(".*\\.", "")
                   + "_"
@@ -527,6 +529,7 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
     }
     if (!failed || !KEEP_FAILED_UNIVERSE) {
       try {
+        FileUtils.deleteDirectory(new File(new File(baseDir), testMethod));
         FileUtils.deleteDirectory(new File(new File(new File(baseDir), subDir), testName));
       } catch (Exception ignored) {
       }
