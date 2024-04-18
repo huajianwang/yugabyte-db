@@ -144,6 +144,7 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
     GFLAGS.put("load_balancer_max_concurrent_removals", "15");
     GFLAGS.put("transaction_table_num_tablets", "3");
     GFLAGS.put(GFlagsUtil.LOAD_BALANCER_INITIAL_DELAY_SECS, "120");
+    GFLAGS.put(GFlagsUtil.TMP_DIRECTORY, "");
   }
 
   public Map<String, String> getYbcGFlags(UniverseDefinitionTaskParams.UserIntent userIntent) {
@@ -183,7 +184,6 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
   protected static String os;
   protected static String subDir;
   protected static String testName;
-  protected static String testMethod;
   // Whether to wait until all old tservers are removed from quorum and new ones are added.
   protected static boolean waitForClusterToStabilize;
 
@@ -420,7 +420,6 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
     }
     File testDir = new File(curDir, testName);
     testDir.mkdirs();
-    GFLAGS.put("tmp_dir", new File(baseDirFile, testMethod).getAbsolutePath());
 
     YugawareProperty.addConfigProperty(
         ReleaseManager.CONFIG_TYPE.name(), getMetadataJson(ybVersion, false), "release");
@@ -504,7 +503,6 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
 
         @Override
         protected void starting(Description description) {
-          testMethod = description.getMethodName();
           testName =
               description.getClassName().replaceAll(".*\\.", "")
                   + "_"
@@ -534,10 +532,6 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
       }
       localNodeManager.shutdown();
     }
-
-    try {
-      FileUtils.deleteDirectory(new File(new File(baseDir), testMethod));
-    } catch (Exception e) {}
   }
 
   @Override

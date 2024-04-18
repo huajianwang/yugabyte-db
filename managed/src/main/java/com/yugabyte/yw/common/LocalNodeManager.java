@@ -18,6 +18,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.google.common.base.Joiner;
 import com.google.common.base.Predicate;
 import com.google.common.collect.Sets;
+import com.google.common.hash.Hashing;
 import com.google.inject.Inject;
 import com.typesafe.config.Config;
 import com.yugabyte.yw.commissioner.tasks.UniverseTaskBase;
@@ -443,6 +444,23 @@ public class LocalNodeManager {
     // }
   }
 
+  public String getTmpDir(
+    Map<String, String> gflags,
+    String nodeName,
+    UniverseDefinitionTaskParams.UserIntent userIntent) {
+    if (gflags.containsKey(GFlagsUtil.TMP_DIRECTORY)) {
+      String tmpDir = gflags.get(GFlagsUtil.TMP_DIRECTORY);
+      if (tmpDir.contains("/tmp/local/")) {
+        return tmpDir;
+      }
+      String nodeRoot = getNodeRoot(userIntent, nodeName);
+      // Otherwise it will be too long string
+      String hashedRoot = Hashing.md5().hashString(nodeRoot, Charset.defaultCharset()).toString();
+      return "/tmp/local/" + hashedRoot;
+    }
+    return "/tmp";
+  }
+
   private String getLogOutput(String prefix, File file, Predicate<String> filter, int maxLines)
       throws IOException {
     StringBuilder stringBuilder = new StringBuilder();
@@ -528,6 +546,11 @@ public class LocalNodeManager {
       //                ? MAX_MEM_RATIO_TSERVER
       //                : MAX_MEM_RATIO_MASTER);
       //      }
+      if (gflags.containsKey(GFlagsUtil.TMP_DIRECTORY)) {
+        String tmpDir = getTmpDir(gflags, nodeInfo.name, userIntent);
+        new File(tmpDir).mkdirs();
+        gflags.put(GFlagsUtil.TMP_DIRECTORY, tmpDir);
+      }
       processCerts(args, nodeInfo, userIntent);
       writeGFlagsToFile(userIntent, gflags, serverType, nodeInfo);
     } catch (IOException e) {
