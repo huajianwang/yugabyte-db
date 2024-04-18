@@ -529,12 +529,15 @@ public abstract class LocalProviderUniverseTestBase extends PlatformGuiceApplica
     }
     if (!failed || !KEEP_FAILED_UNIVERSE) {
       try {
-        FileUtils.deleteDirectory(new File(new File(baseDir), testMethod));
         FileUtils.deleteDirectory(new File(new File(new File(baseDir), subDir), testName));
       } catch (Exception ignored) {
       }
       localNodeManager.shutdown();
     }
+
+    try {
+      FileUtils.deleteDirectory(new File(new File(baseDir), testMethod));
+    } catch (Exception e) {}
   }
 
   @Override
