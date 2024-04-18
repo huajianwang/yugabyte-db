@@ -841,7 +841,9 @@ public abstract class UniverseDefinitionTaskBase extends UniverseTaskBase {
       params.enableYCQL = userIntent.enableYCQL;
       params.enableYCQLAuth = userIntent.enableYCQLAuth;
       params.enableYSQLAuth = userIntent.enableYSQLAuth;
-      params.auditLogConfig = userIntent.auditLogConfig;
+      // Add audit log config from the primary cluster
+      params.auditLogConfig =
+          universe.getUniverseDetails().getPrimaryCluster().userIntent.auditLogConfig;
 
       // The software package to install for this cluster.
       params.ybSoftwareVersion = userIntent.ybSoftwareVersion;
@@ -1158,6 +1160,10 @@ public abstract class UniverseDefinitionTaskBase extends UniverseTaskBase {
         taskParams().extraDependencies.installNodeExporter;
     // Whether to install OpenTelemetry Collector on nodes or not.
     params.otelCollectorEnabled = taskParams().otelCollectorEnabled;
+    // Add audit log config from the primary cluster
+    Universe universe = Universe.getOrBadRequest(taskParams().getUniverseUUID());
+    params.auditLogConfig =
+        universe.getUniverseDetails().getPrimaryCluster().userIntent.auditLogConfig;
     // Which user the node exporter service will run as
     params.nodeExporterUser = taskParams().nodeExporterUser;
     // Development testing variable.
@@ -1283,7 +1289,10 @@ public abstract class UniverseDefinitionTaskBase extends UniverseTaskBase {
       params.enableYCQL = userIntent.enableYCQL;
       params.enableYCQLAuth = userIntent.enableYCQLAuth;
       params.enableYSQLAuth = userIntent.enableYSQLAuth;
-      params.auditLogConfig = userIntent.auditLogConfig;
+      // Add audit log config from the primary cluster
+      Universe universe = Universe.getOrBadRequest(taskParams().getUniverseUUID());
+      params.auditLogConfig =
+          universe.getUniverseDetails().getPrimaryCluster().userIntent.auditLogConfig;
       // Set if this node is a master in shell mode.
       // The software package to install for this cluster.
       params.ybSoftwareVersion = userIntent.ybSoftwareVersion;
@@ -1314,7 +1323,6 @@ public abstract class UniverseDefinitionTaskBase extends UniverseTaskBase {
         paramsCustomizer.accept(params);
       }
 
-      Universe universe = Universe.getOrBadRequest(taskParams().getUniverseUUID());
       UUID custUUID = Customer.get(universe.getCustomerId()).getUuid();
 
       params.callhomeLevel = CustomerConfig.getCallhomeLevel(custUUID);
@@ -2044,16 +2052,11 @@ public abstract class UniverseDefinitionTaskBase extends UniverseTaskBase {
       @Nullable Consumer<AnsibleConfigureServers.Params> installSoftwareParamsCustomizer,
       @Nullable Consumer<AnsibleConfigureServers.Params> gflagsParamsCustomizer) {
 
-    Set<NodeDetails> mergedNodes = new HashSet<>();
-    if (mastersToBeConfigured == tServersToBeConfigured) {
-      mergedNodes = mastersToBeConfigured;
-    } else if (mastersToBeConfigured == null) {
-      mergedNodes = tServersToBeConfigured;
-    } else if (tServersToBeConfigured == null) {
-      mergedNodes = mastersToBeConfigured;
-    } else {
-      Stream.of(mastersToBeConfigured, tServersToBeConfigured).forEach(mergedNodes::addAll);
-    }
+    Set<NodeDetails> mergedNodes =
+        Stream.of(mastersToBeConfigured, tServersToBeConfigured)
+            .filter(Objects::nonNull)
+            .flatMap(Set::stream)
+            .collect(Collectors.toSet());
 
     // Determine the starting state of the nodes and invoke the callback if
     // ignoreNodeStatus is not set.
@@ -2151,9 +2154,15 @@ public abstract class UniverseDefinitionTaskBase extends UniverseTaskBase {
         createCreateNodeTasks(
             universe, nodesToBeCreated, ignoreNodeStatus, setupServerParamsCustomizer);
 
+    Cluster primaryCluster = universe.getUniverseDetails().getPrimaryCluster();
+    Set<NodeDetails> nodesToConfigureMaster =
+        nodesToBeCreated.stream()
+            .filter(n -> n.isInPlacement(primaryCluster.uuid))
+            .collect(Collectors.toSet());
+
     return createConfigureNodeTasks(
         universe,
-        nodesToBeCreated,
+        nodesToConfigureMaster,
         nodesToBeCreated,
         isFallThrough,
         installSoftwareParamsCustomizer,
