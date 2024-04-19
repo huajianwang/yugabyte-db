@@ -970,10 +970,6 @@ Test / parallelExecution := true
 Test / fork := true
 Test / testGrouping := partitionTests( (Test / definedTests).value, testShardSize.value )
 
-TestLocalProviderSuite / parallelExecution := true
-TestLocalProviderSuite / fork := true
-TestLocalProviderSuite / testGrouping := partitionTests( (TestLocalProviderSuite / definedTests).value, testShardSize.value )
-
 Test / javaOptions += "-Dconfig.resource=application.test.conf"
 testOptions += Tests.Argument(TestFrameworks.JUnit, "-v", "-q", "-a")
 testOptions += Tests.Filter(s =>
