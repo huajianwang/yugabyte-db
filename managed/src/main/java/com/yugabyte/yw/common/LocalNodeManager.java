@@ -96,7 +96,7 @@ public class LocalNodeManager {
 
   private static final String LOOPBACK_PREFIX = "127.0.";
   public static final String COMMAND_OUTPUT_PREFIX = "Command output:";
-  private static final boolean RUN_LOG_THREADS = false;
+  private static final boolean RUN_LOG_THREADS = true;
 
   private static Map<String, String> versionBinPathMap = new HashMap<>();
 
@@ -399,49 +399,49 @@ public class LocalNodeManager {
   public void dumpProcessOutput(
       Universe universe, String nodeName, UniverseTaskBase.ServerType serverType) {
 
-    // NodeDetails nodeDetails = universe.getNode(nodeName);
-    // if (nodeDetails == null) {
-    //   log.warn("Node {} not found", nodeName);
-    //   return;
-    // }
-    // UniverseDefinitionTaskParams.UserIntent intent =
-    //     universe.getCluster(nodeDetails.placementUuid).userIntent;
-    // NodeInfo nodeInfo = nodesByNameMap.get(nodeName);
-    // Process process = nodeInfo.processMap.get(serverType);
-    // String logsDirPath = getLogsDir(intent, serverType, nodeInfo);
-    // File logsDir = new File(logsDirPath);
-    // try {
-    //   // Access files inside master/logs directory
-    //   File[] files = logsDir.listFiles();
-    //   System.out.println("files here: " + files.length);
-    //   if (files != null) {
-    //     for (File file : files) {
-    //       log.debug("Catching o/p for file {}", file.getName());
-    //       // Log or process master file
-    //       if (file.exists()) {
-    //         log.error(
-    //             "Node {} process {} last {} error logs: \n {}",
-    //             nodeName,
-    //             serverType,
-    //             ERROR_LINES_TO_DUMP,
-    //             getLogOutput(
-    //                 nodeName + "_" + serverType + "_ERR", file, (l) -> true, ERROR_LINES_TO_DUMP));
-    //       }
-    //     }
-    //   }
-    //   File sysLogs = new File("/var/log/messages");
-    //   if (sysLogs.exists()) {
-    //     log.error(
-    //         "Spilling /var/log/messages o/p: {}", getLogOutput("test", sysLogs, (l) -> true, 1000));
-    //   } else {
-    //     sysLogs = new File("/var/log/syslog");
-    //     if (sysLogs.exists()) {
-    //       log.error(
-    //           "Spilling /var/log/syslog o/p: {}", getLogOutput("test", sysLogs, (l) -> true, 1000));
-    //     }
-    //   }
-    // } catch (IOException ignored) {
-    // }
+    NodeDetails nodeDetails = universe.getNode(nodeName);
+    if (nodeDetails == null) {
+      log.warn("Node {} not found", nodeName);
+      return;
+    }
+    UniverseDefinitionTaskParams.UserIntent intent =
+        universe.getCluster(nodeDetails.placementUuid).userIntent;
+    NodeInfo nodeInfo = nodesByNameMap.get(nodeName);
+    Process process = nodeInfo.processMap.get(serverType);
+    String logsDirPath = getLogsDir(intent, serverType, nodeInfo);
+    File logsDir = new File(logsDirPath);
+    try {
+      // Access files inside master/logs directory
+      File[] files = logsDir.listFiles();
+      System.out.println("files here: " + files.length);
+      if (files != null) {
+        for (File file : files) {
+          log.debug("Catching o/p for file {}", file.getName());
+          // Log or process master file
+          if (file.exists()) {
+            log.error(
+                "Node {} process {} last {} error logs: \n {}",
+                nodeName,
+                serverType,
+                ERROR_LINES_TO_DUMP,
+                getLogOutput(
+                    nodeName + "_" + serverType + "_ERR", file, (l) -> true, ERROR_LINES_TO_DUMP));
+          }
+        }
+      }
+      File sysLogs = new File("/var/log/messages");
+      if (sysLogs.exists()) {
+        log.error(
+            "Spilling /var/log/messages o/p: {}", getLogOutput("test", sysLogs, (l) -> true, 1000));
+      } else {
+        sysLogs = new File("/var/log/syslog");
+        if (sysLogs.exists()) {
+          log.error(
+              "Spilling /var/log/syslog o/p: {}", getLogOutput("test", sysLogs, (l) -> true, 1000));
+        }
+      }
+    } catch (IOException ignored) {
+    }
   }
 
   public String getTmpDir(
